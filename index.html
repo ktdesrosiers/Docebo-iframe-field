@@ -1,0 +1,226 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Docebo Iframe Field Test</title>
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --card: #ffffff;
+      --text: #18212f;
+      --muted: #5f6b7a;
+      --border: #d9e0ea;
+      --primary: #0c6cf2;
+      --primary-soft: #e8f1ff;
+      --success: #137333;
+      --warn: #8a5a00;
+      --pill: #eef3f8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+    }
+    .wrap {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    .hero, .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(16, 24, 40, 0.06);
+    }
+    .hero { padding: 24px; margin-bottom: 20px; }
+    .card { padding: 20px; margin-bottom: 16px; }
+    h1, h2, h3 { margin: 0 0 10px; }
+    p { margin: 0 0 10px; }
+    .muted { color: var(--muted); }
+    .row {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 16px;
+    }
+    .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+    .tag {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: var(--pill);
+      border: 1px solid var(--border);
+      font-size: 14px;
+    }
+    .controls { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 14px;
+      background: var(--primary);
+      color: white;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    button.secondary {
+      background: var(--primary-soft);
+      color: var(--primary);
+      border: 1px solid #cfe0ff;
+    }
+    .mini {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .stat {
+      background: #fbfcfe;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+    }
+    code, pre {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13px;
+    }
+    pre {
+      background: #0f172a;
+      color: #e2e8f0;
+      border-radius: 12px;
+      padding: 14px;
+      overflow: auto;
+      min-height: 180px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .ok { color: var(--success); font-weight: 700; }
+    .warn { color: var(--warn); font-weight: 700; }
+    .hint {
+      background: #fff8e8;
+      border: 1px solid #efdca8;
+      border-radius: 12px;
+      padding: 12px;
+    }
+    ul { padding-left: 20px; }
+    li { margin-bottom: 6px; }
+    @media (max-width: 820px) {
+      .row { grid-template-columns: 1fr; }
+      .mini { grid-template-columns: 1fr; }
+      .wrap { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <h1>Docebo iframe field sandbox</h1>
+      <p class="muted">A small GitHub Pages-ready page to test whether your Docebo iframe additional field loads, passes data, and could support a multi-tag course metadata concept.</p>
+      <div class="tags">
+        <span class="tag">CanMEDS: Communicator</span>
+        <span class="tag">CanMEDS: Collaborator</span>
+        <span class="tag">CanMEDS: Professional</span>
+        <span class="tag">Format: Self-study</span>
+        <span class="tag">Credit: Section 2</span>
+      </div>
+      <div class="controls">
+        <button id="simulate">Simulate Docebo postMessage</button>
+        <button class="secondary" id="clearLog">Clear log</button>
+      </div>
+    </section>
+
+    <div class="row">
+      <section class="card">
+        <h2>What this tests</h2>
+        <p>This page listens for <code>postMessage</code> events, shows the origin, and prints the payload so you can see what Docebo sends into the iframe.</p>
+        <div class="mini">
+          <div class="stat">
+            <h3>Status</h3>
+            <p id="messageStatus" class="warn">No message received yet</p>
+          </div>
+          <div class="stat">
+            <h3>Last origin</h3>
+            <p id="originValue" class="muted">None</p>
+          </div>
+          <div class="stat">
+            <h3>Last event time</h3>
+            <p id="timeValue" class="muted">None</p>
+          </div>
+          <div class="stat">
+            <h3>Embed check</h3>
+            <p id="embedValue" class="muted">This page can be embedded unless headers from the host block it.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Quick notes</h2>
+        <div class="hint">
+          <p><strong>Use GitHub Pages</strong>, not the normal github.com file preview URL.</p>
+          <p>In Docebo, create an iframe additional field for a course, paste the GitHub Pages URL, set a height like <code>700</code>, then test the course properties page.</p>
+        </div>
+        <p style="margin-top:12px;" class="muted">If a message arrives, the debug panel below will update. If not, your iframe may still be loading correctly; it just means no message was sent in that moment.</p>
+      </section>
+    </div>
+
+    <section class="card">
+      <h2>Message log</h2>
+      <pre id="log">Waiting for events...</pre>
+    </section>
+
+    <section class="card">
+      <h2>Next experiment ideas</h2>
+      <ul>
+        <li>Replace the fake tags with values read from a JSON file in the same GitHub Pages repo.</li>
+        <li>Add a tiny form to manually build a tag payload and see how you might represent multi-valued metadata.</li>
+        <li>Later, wire a lightweight API endpoint to return tag options by course or user.</li>
+      </ul>
+    </section>
+  </div>
+
+  <script>
+    const log = document.getElementById('log');
+    const statusEl = document.getElementById('messageStatus');
+    const originEl = document.getElementById('originValue');
+    const timeEl = document.getElementById('timeValue');
+
+    function renderEvent(label, eventLike) {
+      const stamp = new Date().toLocaleString();
+      statusEl.textContent = 'Message received';
+      statusEl.className = 'ok';
+      originEl.textContent = eventLike.origin || 'unknown';
+      timeEl.textContent = stamp;
+      const payload = {
+        label,
+        receivedAt: stamp,
+        origin: eventLike.origin || 'unknown',
+        data: eventLike.data
+      };
+      log.textContent = JSON.stringify(payload, null, 2);
+    }
+
+    window.addEventListener('message', (event) => {
+      renderEvent('window.message', event);
+    });
+
+    document.getElementById('simulate').addEventListener('click', () => {
+      const sample = {
+        username: 'trial.user',
+        user_id: 12345,
+        note: 'Simulated payload so you can verify the logger works.'
+      };
+      window.postMessage(sample, '*');
+    });
+
+    document.getElementById('clearLog').addEventListener('click', () => {
+      log.textContent = 'Waiting for events...';
+      statusEl.textContent = 'No message received yet';
+      statusEl.className = 'warn';
+      originEl.textContent = 'None';
+      timeEl.textContent = 'None';
+    });
+  </script>
+</body>
+</html>
